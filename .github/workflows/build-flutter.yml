@@ -1,0 +1,45 @@
+name: Build Flutter APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_path:
+        description: 'Folder project Flutter yang akan dibuild (relatif ke root repo)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.event.inputs.build_path }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build APK (release)
+        run: flutter build apk --release
+
+      - name: Upload APK sebagai artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: ${{ github.event.inputs.build_path }}/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 3
