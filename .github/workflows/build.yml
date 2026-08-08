@@ -24,13 +24,22 @@ jobs:
       - name: Download project ZIP
         env:
           ZIP_URL: ${{ github.event.inputs.zip_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          curl -L \
+          curl -sL \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/octet-stream" \
             -o project.zip \
             "$ZIP_URL"
+
+          echo "Ukuran file yang terunduh:"
+          ls -la project.zip
+
+          if ! head -c 2 project.zip | grep -q "PK"; then
+            echo "❌ File yang terunduh BUKAN zip yang valid. Isi respons:"
+            cat project.zip
+            exit 1
+          fi
 
       - name: Extract project
         run: |
